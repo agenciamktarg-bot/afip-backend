@@ -1,28 +1,27 @@
 const express = require('express');
-const { execSync } = require('child_process');
+const Afip = require('@afipsdk/afip.js');
+const fs = require('fs');
 const app = express();
 app.use(express.json());
+
+// Escribir cert y key desde variables de entorno
+fs.writeFileSync('/tmp/cert.crt', process.env.AFIP_CERT.replace(/\\n/g, '\n'));
+fs.writeFileSync('/tmp/private.key', process.env.AFIP_KEY.replace(/\\n/g, '\n'));
+
+const afip = new Afip({
+  CUIT: process.env.AFIP_CUIT,
+  cert: '/tmp/cert.crt',
+  key: '/tmp/private.key',
+  production: false // homologación por ahora
+});
 
 app.get('/', (req, res) => {
   res.json({ status: 'AFIP Backend funcionando ✅' });
 });
 
-app.get('/generar-certificado/:cuit', (req, res) => {
-  try {
-    const cuit = req.params.cuit;
-    const key = execSync(`openssl genrsa 2048`).toString();
-    const csr = execSync(
-      `echo "${key}" | openssl req -new -key /dev/stdin -subj "/C=AR/O=MOBA/CN=${cuit}/serialNumber=CUIT ${cuit}"`
-    ).toString();
-    res.json({ privateKey: key, csr });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 app.post('/facturar', async (req, res) => {
-  res.json({ message: 'Endpoint listo' });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+  try {
+    const { importe, concepto } = req.body;
+    const fecha = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const ultimoNro = await afip.ElectronicBilling.getLastVoucher(2, 11);
+    const data
