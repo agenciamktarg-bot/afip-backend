@@ -1,19 +1,10 @@
 const express = require('express');
 const Afip = require('@afipsdk/afip.js');
-const fs = require('fs');
 const app = express();
 app.use(express.json());
 
-const cert = process.env.AFIP_CERT;
-const key = process.env.AFIP_KEY;
-
-fs.writeFileSync('/tmp/cert.crt', cert);
-fs.writeFileSync('/tmp/private.key', key);
-
 const afip = new Afip({
-  CUIT: parseInt(process.env.AFIP_CUIT),
-  cert: '/tmp/cert.crt',
-  key: '/tmp/private.key',
+  CUIT: 20409378472,
   production: false
 });
 
@@ -25,12 +16,12 @@ app.post('/facturar', async function(req, res) {
   try {
     var importe = req.body.importe;
     var fecha = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    var ultimoNro = await afip.ElectronicBilling.getLastVoucher(2, 11);
+    var ultimoNro = await afip.ElectronicBilling.getLastVoucher(1, 6);
     var data = {
       CantReg: 1,
-      PtoVta: 2,
-      CbteTipo: 11,
-      Concepto: 2,
+      PtoVta: 1,
+      CbteTipo: 6,
+      Concepto: 1,
       DocTipo: 99,
       DocNro: 0,
       CbteDesde: ultimoNro + 1,
