@@ -4,8 +4,11 @@ const fs = require('fs');
 const app = express();
 app.use(express.json());
 
-fs.writeFileSync('/tmp/cert.crt', (process.env.AFIP_CERT || '').replace(/\\n/g, '\n'));
-fs.writeFileSync('/tmp/private.key', (process.env.AFIP_KEY || '').replace(/\\n/g, '\n'));
+const cert = process.env.AFIP_CERT;
+const key = process.env.AFIP_KEY;
+
+fs.writeFileSync('/tmp/cert.crt', cert);
+fs.writeFileSync('/tmp/private.key', key);
 
 const afip = new Afip({
   CUIT: parseInt(process.env.AFIP_CUIT),
