@@ -1,4 +1,5 @@
 const express = require('express');
+const Afip = require('@afipsdk/afip.js');
 const app = express();
 app.use(express.json());
 
@@ -7,7 +8,6 @@ app.get('/', (req, res) => {
 });
 
 app.post('/facturar', async (req, res) => {
-  // Aquí irá la lógica de AFIP
   res.json({ message: 'Endpoint listo' });
 });
 
