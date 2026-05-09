@@ -5,6 +5,7 @@ app.use(express.json());
 
 const afip = new Afip({
   CUIT: 20409378472,
+  access_token: process.env.AFIP_TOKEN,
   production: false
 });
 
