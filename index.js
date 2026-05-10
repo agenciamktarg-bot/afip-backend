@@ -1,5 +1,6 @@
 const express = require('express');
 const Afip = require('@afipsdk/afip.js');
+const { execSync } = require('child_process');
 const app = express();
 app.use(express.json());
 
@@ -7,9 +8,7 @@ app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 
@@ -21,6 +20,20 @@ const afip = new Afip({
 
 app.get('/', function(req, res) {
   res.json({ status: 'AFIP Backend funcionando OK' });
+});
+
+app.get('/generar-certificado/:cuit', function(req, res) {
+  try {
+    var cuit = req.params.cuit;
+    var key = execSync('openssl genrsa 2048').toString();
+    var csr = execSync(
+      'openssl req -new -key /dev/stdin -subj "/C=AR/O=MOBA/CN=' + cuit + '/serialNumber=CUIT ' + cuit + '"',
+      { input: key }
+    ).toString();
+    res.json({ privateKey: key, csr: csr });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.post('/facturar', async function(req, res) {
