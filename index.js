@@ -1,6 +1,7 @@
 const express = require('express');
 const Afip = require('@afipsdk/afip.js');
 const forge = require('node-forge');
+const fs = require('fs');
 const app = express();
 app.use(express.json());
 
@@ -12,14 +13,18 @@ app.use(function(req, res, next) {
   next();
 });
 
+fs.writeFileSync('/tmp/cert.crt', process.env.AFIP_CERT);
+fs.writeFileSync('/tmp/private.key', process.env.AFIP_KEY);
+
 const afip = new Afip({
-  CUIT: 20409378472,
-  access_token: process.env.AFIP_TOKEN,
-  production: false
+  CUIT: 24418348174,
+  cert: '/tmp/cert.crt',
+  key: '/tmp/private.key',
+  production: true
 });
 
 app.get('/', function(req, res) {
-  res.json({ status: 'AFIP Backend funcionando OK' });
+  res.json({ status: 'AFIP Backend funcionando OK - PRODUCCION' });
 });
 
 app.get('/generar-certificado/:cuit', function(req, res) {
@@ -47,12 +52,12 @@ app.post('/facturar', async function(req, res) {
     var importe = req.body.importe;
     var condicionIVA = req.body.condicionIVA || 5;
     var fecha = new Date().toISOString().split('T')[0].replace(/-/g, '');
-    var ultimoNro = await afip.ElectronicBilling.getLastVoucher(1, 6);
+    var ultimoNro = await afip.ElectronicBilling.getLastVoucher(2, 11);
     var data = {
       CantReg: 1,
-      PtoVta: 1,
-      CbteTipo: 6,
-      Concepto: 1,
+      PtoVta: 2,
+      CbteTipo: 11,
+      Concepto: 2,
       DocTipo: 99,
       DocNro: 0,
       CbteDesde: ultimoNro + 1,
