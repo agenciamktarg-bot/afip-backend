@@ -13,8 +13,10 @@ app.use(function(req, res, next) {
   next();
 });
 
-fs.writeFileSync('/tmp/cert.crt', process.env.AFIP_CERT);
-fs.writeFileSync('/tmp/private.key', process.env.AFIP_KEY);
+var cert = (process.env.AFIP_CERT || '').replace(/\\n/g, '\n');
+var key = (process.env.AFIP_KEY || '').replace(/\\n/g, '\n');
+fs.writeFileSync('/tmp/cert.crt', cert);
+fs.writeFileSync('/tmp/private.key', key);
 
 const afip = new Afip({
   CUIT: 24418348174,
