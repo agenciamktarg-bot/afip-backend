@@ -33,7 +33,7 @@ app.get('/generar-certificado/:cuit', function(req, res) {
       { name: 'countryName', value: 'AR' },
       { name: 'organizationName', value: 'MOBA' },
       { name: 'commonName', value: cuit },
-      { shortName: 'serialNumber', value: 'CUIT ' + cuit }
+      { name: 'serialName', value: 'CUIT ' + cuit, type: '2.5.4.5' }
     ]);
     csr.sign(keypair.privateKey);
     res.json({ privateKey: privateKey, csr: forge.pki.certificationRequestToPem(csr) });
