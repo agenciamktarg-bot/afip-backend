@@ -1,6 +1,6 @@
 const express = require('express');
 const Afip = require('@afipsdk/afip.js');
-const { execSync } = require('child_process');
+const forge = require('node-forge');
 const app = express();
 app.use(express.json());
 
@@ -25,12 +25,18 @@ app.get('/', function(req, res) {
 app.get('/generar-certificado/:cuit', function(req, res) {
   try {
     var cuit = req.params.cuit;
-    var key = execSync('openssl genrsa 2048').toString();
-    var csr = execSync(
-      'openssl req -new -key /dev/stdin -subj "/C=AR/O=MOBA/CN=' + cuit + '/serialNumber=CUIT ' + cuit + '"',
-      { input: key }
-    ).toString();
-    res.json({ privateKey: key, csr: csr });
+    var keypair = forge.pki.rsa.generateKeyPair({ bits: 2048, workers: -1 });
+    var privateKey = forge.pki.privateKeyToPem(keypair.privateKey);
+    var csr = forge.pki.createCertificationRequest();
+    csr.publicKey = keypair.publicKey;
+    csr.setSubject([
+      { name: 'countryName', value: 'AR' },
+      { name: 'organizationName', value: 'MOBA' },
+      { name: 'commonName', value: cuit },
+      { shortName: 'serialNumber', value: 'CUIT ' + cuit }
+    ]);
+    csr.sign(keypair.privateKey);
+    res.json({ privateKey: privateKey, csr: forge.pki.certificationRequestToPem(csr) });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
